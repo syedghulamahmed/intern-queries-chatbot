@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1020"><meta name="description" content="InternHelp AI — an AI-assisted intern support chatbot.">
+<title>InternHelp AI — Intern Support</title>
+<style>
+:root{color-scheme:dark;--bg:#090e1b;--panel:#111a2d;--line:#26344f;--muted:#9aabc6;--text:#edf3ff;--accent:#8b9cff;--user:#25365a}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -15%,#1b2b52 0,transparent 55%),var(--bg);color:var(--text);font:15px/1.55 Inter,ui-sans-serif,system-ui,Segoe UI,Arial}
+main{width:min(900px,calc(100% - 32px));margin:36px auto}.top{display:flex;align-items:center;gap:14px;margin-bottom:22px}.logo{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(135deg,#8b9cff,#5b6de0);font-size:22px;color:#071027;font-weight:900}.eyebrow{color:#aab8d2;font-size:12px;letter-spacing:.14em;text-transform:uppercase}.top h1{font-size:22px;margin:0}.status{margin-left:auto;border:1px solid var(--line);border-radius:99px;padding:6px 11px;color:#b9c9e7;font-size:12px}
+.shell{border:1px solid var(--line);border-radius:22px;background:#0d1526eF;overflow:hidden;box-shadow:0 24px 80px #0006}.intro{padding:22px 24px;border-bottom:1px solid var(--line)}.intro h2{margin:0 0 5px;font-size:18px}.intro p{margin:0;color:var(--muted)}#messages{height:min(54vh,520px);min-height:330px;overflow:auto;padding:22px;display:flex;flex-direction:column;gap:14px}.msg{max-width:82%;padding:13px 16px;border-radius:16px;white-space:pre-wrap;overflow-wrap:anywhere}.bot{align-self:flex-start;background:var(--panel);border:1px solid var(--line);border-top-left-radius:5px}.user{align-self:flex-end;background:var(--user);border:1px solid #3a4f7b;border-top-right-radius:5px}.meta{display:block;font-size:11px;color:#a8b8d3;margin-bottom:5px}.quick{padding:0 22px 18px;display:flex;gap:8px;flex-wrap:wrap}.quick button{border:1px solid var(--line);background:#121e34;color:#cbd8f0;border-radius:99px;padding:8px 12px;cursor:pointer}.quick button:hover{border-color:var(--accent)}.composer{padding:16px 18px;border-top:1px solid var(--line);display:flex;gap:10px;background:#0a1221}.composer input{flex:1;min-width:0;background:#111c30;border:1px solid #2c3b58;border-radius:13px;padding:14px;color:var(--text);font:inherit;outline:none}.composer input:focus{border-color:var(--accent)}.composer button{border:0;border-radius:13px;padding:0 20px;background:var(--accent);color:#081126;font-weight:750;cursor:pointer}.composer button:disabled{opacity:.5;cursor:wait}.foot{font-size:12px;color:#8091ad;text-align:center;margin:15px 0}.typing{color:var(--muted);font-size:13px;padding:0 22px 12px}
+@media(max-width:600px){main{margin:18px auto}.status{display:none}#messages{height:52vh;padding:15px}.msg{max-width:94%}.intro{padding:18px}.composer{padding:12px}.composer button{padding:0 14px}}
+</style>
+</head>
+<body><main>
+<header class="top"><div class="logo">✦</div><div><div class="eyebrow">Intern support assistant</div><h1>InternHelp AI</h1></div><div class="status">● Online demo</div></header>
+<section class="shell" aria-label="Chatbot">
+<div class="intro"><h2>How can I help you today?</h2><p>Ask about assignment guidelines, submissions, GitHub, deployment, or troubleshooting.</p></div>
+<div id="messages" aria-live="polite"><div class="msg bot"><span class="meta">INTERNHELP AI</span>Hello! I'm your intern-support assistant. I can help with project requirements, submission preparation, GitHub, and common technical issues. What would you like to know?</div></div>
+<div class="quick"><button type="button" data-q="What are the requirements for assignment 3?">Assignment 3</button><button type="button" data-q="How do I submit my assignment?">Submission help</button><button type="button" data-q="What should my GitHub repository include?">GitHub checklist</button><button type="button" data-q="I have a technical issue with deployment.">Troubleshooting</button></div>
+<div id="typing" class="typing" hidden>InternHelp AI is thinking…</div>
+<form class="composer" id="form"><input id="question" maxlength="1200" autocomplete="off" placeholder="Type your question…" aria-label="Your question" required><button id="send" type="submit">Send ↗</button></form>
+</section>
+<p class="foot">Demo project · Not an official Internee.pk support channel · Do not share passwords or API keys.</p>
+</main>
+<script>
+const messages=document.getElementById('messages'),form=document.getElementById('form'),input=document.getElementById('question'),send=document.getElementById('send'),typing=document.getElementById('typing');
+function add(text,who,mode){const el=document.createElement('div');el.className='msg '+who;const meta=document.createElement('span');meta.className='meta';meta.textContent=who==='user'?'YOU':('INTERNHELP AI'+(mode==='ai'?' · AI-ASSISTED':' · KNOWLEDGE BASE'));el.append(meta,document.createTextNode(text));messages.append(el);messages.scrollTop=messages.scrollHeight}
+async function ask(q){q=q.trim();if(!q||send.disabled)return;add(q,'user');input.value='';send.disabled=true;typing.hidden=false;try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q})});const data=await r.json();if(!r.ok)throw new Error(data.error||'Request failed');add(data.answer||'No answer was returned.', 'bot',data.mode)}catch(e){add('I could not reach the chatbot service. Please try again in a moment. ('+e.message+')','bot')}finally{typing.hidden=true;send.disabled=false;input.focus()}}
+form.addEventListener('submit',e=>{e.preventDefault();ask(input.value)});document.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click',()=>ask(b.dataset.q)));
+</script></body></html>
