@@ -4,16 +4,16 @@ An intern-support chatbot demo for assignment #3. It answers common questions ab
 
 ## Features
 - Responsive chat interface with quick prompts.
-- Context-aware AI responses grounded in an approved demo FAQ.
-- Safe fallback knowledge-base responses when the AI provider is unavailable.
+- AI responses grounded in an approved demo FAQ.
+- Safe fallback knowledge-base responses when live AI inference is unavailable.
 - Explicit handling of unknown official policies; it does not invent stipend, deadline, attendance, eligibility, or certificate rules.
 - Flask API and Vercel deployment configuration.
 
 ## Stack
-Python, Flask, Vireonix Chat Completions API, HTML, CSS, JavaScript, Vercel.
+Python, Flask, BlockRun Chat Completions API, HTML, CSS, JavaScript, Vercel.
 
 ## AI provider
-Uses Vireonix's OpenAI-compatible `POST /v1/chat/completions` endpoint with `model: "auto"`, no API key or Authorization header. The free public API is subject to per-IP hourly budgets and may return HTTP 429 or become temporarily unavailable. Fallback answers are labelled as knowledge-base responses.
+Uses BlockRun's OpenAI-compatible `POST /api/v1/chat/completions` endpoint with free model `nvidia/nemotron-3.5-bolt` and fallback `poolside/laguna-xs-2.1`; no API key, wallet, payment card, or account is needed. Free-model capacity and IP rate limits can change. Fallback answers are labelled as knowledge-base responses.
 
 ## Run locally
 ```bash
@@ -36,4 +36,4 @@ No provider API key is required.
 The private Internee.pk knowledge base was not supplied. The demo uses the assignment brief and general project guidance. Questions about official policies or account-specific matters are directed to the portal/support. It is not official Internee.pk support and cannot submit work to an account.
 
 ## Privacy and safety
-Chat messages are sent to Vireonix and may be retained and used for model training and improvement. The interface discloses this and links to https://vireonix.ai/terms. Do not submit passwords, API keys, sensitive personal data, or confidential information. The app does not intentionally persist chat messages.
+Messages are routed through BlockRun to the selected model provider. BlockRun states that it does not store or train on prompts; upstream provider terms apply. Read [BlockRun Privacy](https://blockrun.ai/privacy) and [Terms](https://blockrun.ai/terms). Do not submit passwords, API keys, sensitive personal data, or confidential information. The app does not intentionally persist chat messages.
