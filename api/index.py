@@ -36,7 +36,7 @@ def home():
 
 @app.get("/api/health")
 def health():
-    return jsonify({"status": "ok", "service": "internhelp-ai", "ai_configured": True, "ai_provider": "vireonix"})
+    return jsonify({"status": "ok", "service": "internhelp-ai", "ai_configured": True, "ai_provider": "blockrun"})
 
 
 @app.post("/api/chat")
@@ -65,29 +65,37 @@ def chat():
             "Never request passwords, API keys, or other secrets. Clearly distinguish general project advice from official platform information.\n\n"
             "APPROVED KNOWLEDGE:\n" + "\n".join(answer for _, answer in FAQ)
         )
-        payload = {
-            "model": "auto",
-            "temperature": 0.25,
-            "max_tokens": 1100,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": message},
-            ],
-        }
-        upstream = urllib.request.Request(
-            "https://vireonix.ai/v1/chat/completions",
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        with urllib.request.urlopen(upstream, timeout=25) as response:
-            result = json.loads(response.read().decode("utf-8"))
-        answer = result.get("choices", [{}])[0].get("message", {}).get("content")
-        if isinstance(answer, str) and answer.strip():
-            return jsonify({"answer": answer.strip()[:5000], "mode": "ai", "provider": "vireonix"})
-        raise ValueError("Empty AI response")
+        answer = None
+        for model in ("nvidia/nemotron-3.5-bolt", "poolside/laguna-xs-2.1"):
+            payload = {
+                "model": model,
+                "temperature": 0.25,
+                "max_tokens": 1100,
+                "messages": [
+                    {"role": "system", "content": system + " Answer directly. Never include hidden reasoning or analysis."},
+                    {"role": "user", "content": message},
+                ],
+            }
+            upstream = urllib.request.Request(
+                "https://blockrun.ai/api/v1/chat/completions",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            try:
+                with urllib.request.urlopen(upstream, timeout=22) as response:
+                    result = json.loads(response.read().decode("utf-8"))
+                generated = result.get("choices", [{}])[0].get("message", {}).get("content")
+                if isinstance(generated, str) and generated.strip():
+                    answer = generated.strip()
+                    break
+            except Exception:
+                continue
+        if answer:
+            return jsonify({"answer": answer[:5000], "mode": "ai", "provider": "blockrun"})
+        raise RuntimeError("BlockRun inference unavailable")
     except Exception as exc:
-        app.logger.warning("InternHelp Vireonix inference failed (%s); returning grounded fallback.", type(exc).__name__)
+        app.logger.warning("InternHelp BlockRun inference failed (%s); returning grounded fallback.", type(exc).__name__)
         return jsonify({
             "answer": grounded_answer,
             "mode": "knowledge_base_fallback",
