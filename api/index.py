@@ -34,7 +34,7 @@ def home():
 
 @app.get("/api/health")
 def health():
-    return jsonify({"status": "ok", "service": "internhelp-ai", "ai_configured": bool(os.getenv("AI_GATEWAY_API_KEY") or request.headers.get("x-vercel-oidc-token"))})
+    return jsonify({"status": "ok", "service": "internhelp-ai", "ai_configured": bool(os.getenv("AI_GATEWAY_API_KEY") or os.getenv("VERCEL_OIDC_TOKEN"))})
 
 
 @app.post("/api/chat")
@@ -54,7 +54,7 @@ def chat():
         return jsonify({"error": "Keep your question under 1,200 characters."}), 413
 
     grounded_answer = local_answer(message)
-    key = os.getenv("AI_GATEWAY_API_KEY") or request.headers.get("x-vercel-oidc-token")
+    key = os.getenv("AI_GATEWAY_API_KEY") or os.getenv("VERCEL_OIDC_TOKEN")
     if not key:
         return jsonify({"answer": grounded_answer, "mode": "knowledge_base"})
 
