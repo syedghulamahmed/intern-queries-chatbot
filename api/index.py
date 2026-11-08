@@ -34,7 +34,7 @@ def home():
 
 @app.get("/api/health")
 def health():
-    return jsonify({"status": "ok", "service": "internhelp-ai", "ai_configured": bool(os.getenv("OPENAI_API_KEY"))})
+    return jsonify({"status": "ok", "service": "internhelp-ai", "ai_configured": bool(os.getenv("AI_GATEWAY_API_KEY") or os.getenv("VERCEL_OIDC_TOKEN"))})
 
 
 @app.post("/api/chat")
@@ -54,15 +54,15 @@ def chat():
         return jsonify({"error": "Keep your question under 1,200 characters."}), 413
 
     grounded_answer = local_answer(message)
-    key = os.getenv("OPENAI_API_KEY")
+    key = os.getenv("AI_GATEWAY_API_KEY") or os.getenv("VERCEL_OIDC_TOKEN")
     if not key:
         return jsonify({"answer": grounded_answer, "mode": "knowledge_base"})
 
     try:
         from openai import OpenAI
-        client = OpenAI(api_key=key, timeout=12.0, max_retries=0)
+        client = OpenAI(api_key=key, base_url="https://ai-gateway.vercel.sh/v1", timeout=20.0, max_retries=0)
         response = client.chat.completions.create(
-            model=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
+            model=os.getenv("AI_GATEWAY_MODEL", "openai/gpt-4.1-mini"),
             temperature=0.2,
             messages=[
                 {
@@ -81,14 +81,14 @@ def chat():
         )
         answer = response.choices[0].message.content
         if isinstance(answer, str) and answer.strip():
-            return jsonify({"answer": answer.strip()[:5000], "mode": "ai"})
+            return jsonify({"answer": answer.strip()[:5000], "mode": "ai", "provider": "vercel-ai-gateway"})
         raise ValueError("Empty AI response")
     except Exception:
         app.logger.exception("InternHelp AI provider failed; returning grounded fallback")
         return jsonify({
             "answer": grounded_answer,
             "mode": "knowledge_base_fallback",
-            "notice": "AI assistance is temporarily unavailable; this answer uses the built-in demo knowledge base.",
+            "notice": "AI Gateway inference is unavailable; this answer uses the built-in demo knowledge base.",
         })
 
 
