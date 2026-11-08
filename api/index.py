@@ -28,8 +28,7 @@ def home():
 
 @app.get("/api/health")
 def health():
-    return jsonify({"status": "ok", "service": "internhelp-ai"})
-
+    return jsonify({"status": "ok", "service": "internhelp-ai", "ai_configured": bool(os.getenv("OPENAI_API_KEY"))})
 @app.post("/api/chat")
 def chat():
     data = request.get_json(silent=True) or {}
